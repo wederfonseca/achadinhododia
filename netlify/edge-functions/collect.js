@@ -1,19 +1,15 @@
 /**
- * Netlify Edge Function – CAPI ONLY (estável)
- * - Recebe evento do browser
- * - Envia para Meta CAPI
- * - Log simples para auditoria
- * - Horário Brasil (America/Sao_Paulo)
+ * Netlify Edge Function — Meta CAPI
+ * Conversão 100% server-side
  */
 
-export default async (request) => {
+export default async (request, context) => {
   try {
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
     }
 
     const body = await request.json().catch(() => null);
-
     if (!body || !body.event_id) {
       return new Response(
         JSON.stringify({ ok: false, error: "missing_event_id" }),
@@ -21,23 +17,11 @@ export default async (request) => {
       );
     }
 
-    /* ===== DATA/HORA BRASIL ===== */
-    const now = new Date();
-    const dateBr = now.toLocaleDateString("en-CA", {
-      timeZone: "America/Sao_Paulo"
-    }); // YYYY-MM-DD
-
-    const timeBr = now.toLocaleTimeString("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-      hour12: false
-    }); // HH:MM:SS
-
-    /* ===== VARIÁVEIS DE AMBIENTE ===== */
-    const pixelId = Netlify.env.get("META_PIXEL_ID");
-    const accessToken = Netlify.env.get("META_ACCESS_TOKEN");
+    const pixelId = context.env.META_PIXEL_ID;
+    const accessToken = context.env.META_ACCESS_TOKEN;
 
     if (!pixelId || !accessToken) {
-      console.error("[CAPI] ENV VARS MISSING");
+      console.error("[CAPI] missing env vars");
       return new Response(
         JSON.stringify({ ok: false, error: "missing_env_vars" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
@@ -50,11 +34,18 @@ export default async (request) => {
         request.headers.get("x-nf-client-connection-ip") ||
         request.headers.get("x-forwarded-for") ||
         null,
-      client_user_agent: request.headers.get("user-agent") || null
+
+      client_user_agent:
+        request.headers.get("user-agent") || null
     };
 
     if (body.fbp) userData.fbp = body.fbp;
     if (body.fbc) userData.fbc = body.fbc;
+
+    // 🔑 external_id (array recomendado pelo Meta)
+    if (body.external_id) {
+      userData.external_id = [body.external_id];
+    }
 
     /* ===== PAYLOAD CAPI ===== */
     const capiPayload = {
@@ -69,10 +60,8 @@ export default async (request) => {
           custom_data: body.custom_data || {}
         }
       ]
-      // test_event_code: "TEST9384" // use só quando for testar
     };
 
-    /* ===== ENVIO PARA META ===== */
     const res = await fetch(
       `https://graph.facebook.com/v18.0/${pixelId}/events?access_token=${accessToken}`,
       {
@@ -82,9 +71,9 @@ export default async (request) => {
       }
     );
 
-    /* ===== LOG LIMPO ===== */
+    const now = new Date();
     console.log(
-      `[CAPI] ${dateBr} ${timeBr} event_id=${body.event_id} status=${res.status}`
+      `[CAPI] ${now.toISOString()} event_id=${body.event_id} status=${res.status}`
     );
 
     return new Response(

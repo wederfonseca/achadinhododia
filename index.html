@@ -4,24 +4,29 @@
   <meta charset="UTF-8">
   <title>Achadinho do Dia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1c1c1c">
 
   <link rel="icon" type="image/png" href="favicon-v6.png">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 
-  <!-- META PIXEL (APENAS PAGEVIEW) -->
+  <!-- META PIXEL — PageView no browser -->
   <script>
-  !function(f,b,e,v,n,t,s){
-    if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)
-  }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    !function(f,b,e,v,n,t,s){
+      if(f.fbq)return;
+      n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];
+      t=b.createElement(e);t.async=!0;
+      t.src=v;
+      s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s);
+    }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
 
-  fbq('init', '777056694717675');
-  fbq('track', 'PageView');
+    fbq('init', '777056694717675');
+    fbq('track', 'PageView');
   </script>
 </head>
 
@@ -35,15 +40,20 @@
   </div>
 
   <div class="image-box">
-    <img src="caixa.png" alt="Ofertas">
+    <img src="caixa.png" alt="Ofertas do dia">
   </div>
 
   <div class="urgency">⚡ Os melhores preços acabam rápido</div>
 
-  <a id="joinBtn"
-     class="btn"
-     href="https://busqy.me/grupos/achadinhododia">
-     ENTRAR NO GRUPO DE OFERTAS
+  <a
+    id="joinBtn"
+    class="btn"
+    href="https://busqy.me/grupos/achadinhododia"
+    data-collect-endpoint="/collect"
+    aria-label="Entrar no grupo de ofertas"
+    rel="noopener noreferrer"
+  >
+    ENTRAR NO GRUPO DE OFERTAS
   </a>
 
   <div class="checks">
@@ -53,66 +63,75 @@
   </div>
 </div>
 
-<!-- OVERLAY (estático, sem animação) -->
-<div id="loading" class="loading hidden">
-  <div class="loading-box">
-    🔒 Reservando sua vaga no grupo…
-  </div>
+<!-- OVERLAY -->
+<div id="loading" class="loading hidden" role="status" aria-live="polite">
+  <div class="loading-box">🔒 Reservando sua vaga no grupo…</div>
 </div>
 
 <script>
-/* Tempo fixo de exibição do loading (1 segundo) */
+/* ================= CONFIG ================= */
 const WAIT_MS = 1000;
 let locked = false;
 
+/* ================= HELPERS ================= */
 function generateEventId() {
-  if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
   return 'evt_' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
 }
 
 function readCookie(name) {
   const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-  return m ? m.pop() : null;
+  return m ? decodeURIComponent(m.pop()) : null;
 }
 
-/* envia o evento (beacon ou fetch) e GUARANTEIA espera fixa antes do redirect */
-function sendEventThenRedirect(endpoint, json, url) {
+/* 🔑 external_id passivo (cache/contexto) */
+function getExternalId() {
+  const fbp = readCookie('_fbp');
+  if (fbp) return fbp;
+
+  // fallback determinístico (não pessoal)
+  return btoa(
+    navigator.userAgent +
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+}
+
+/* ================= SEND + REDIRECT ================= */
+function sendEventThenRedirect(endpoint, payload, url) {
   try {
     if (navigator.sendBeacon) {
-      // sendBeacon é a forma preferida
-      navigator.sendBeacon(endpoint, new Blob([json], { type: 'application/json' }));
+      navigator.sendBeacon(endpoint, new Blob([payload], { type: 'application/json' }));
     } else {
-      // fallback: fire-and-forget
       fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: json,
+        body: payload,
         keepalive: true
-      }).catch(()=>{});
+      }).catch(() => {});
     }
   } catch (e) {
-    // não bloquear o fluxo por erro de envio
     console.warn('[collect] send error', e);
   }
 
-  // espera fixa (UX previsível) e redireciona
   setTimeout(() => {
     window.location.href = url;
   }, WAIT_MS);
 }
 
-function trackWhatsappClick(e, url) {
+/* ================= CLICK ================= */
+function trackWhatsappClick(e, btn) {
   e.preventDefault();
   if (locked) return;
   locked = true;
 
-  // se já clicou nesta sessão, segue direto (previne duplicação local)
+  const url = btn.href;
+  const endpoint = btn.dataset.collectEndpoint || '/collect';
+
   if (sessionStorage.getItem('group_join_sent')) {
     window.location.href = url;
     return;
   }
 
-  // mostra o aviso (overlay estático)
   document.getElementById('loading')?.classList.remove('hidden');
 
   const eventId = generateEventId();
@@ -124,6 +143,7 @@ function trackWhatsappClick(e, url) {
     event_source_url: window.location.href,
     fbp: readCookie('_fbp'),
     fbc: readCookie('_fbc'),
+    external_id: getExternalId(),
     custom_data: {
       destination: 'whatsapp_group',
       brand: 'Achadinho do Dia',
@@ -131,17 +151,15 @@ function trackWhatsappClick(e, url) {
     }
   });
 
-  // chama a Edge Function que faz o CAPI + contador
-  sendEventThenRedirect('/collect', payload, url);
+  sendEventThenRedirect(endpoint, payload, url);
 }
 
+/* ================= INIT ================= */
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('joinBtn');
-  if (btn) {
-    btn.addEventListener('click', function (ev) {
-      trackWhatsappClick(ev, btn.href);
-    }, { passive: false });
-  }
+  if (!btn) return;
+
+  btn.addEventListener('click', ev => trackWhatsappClick(ev, btn), { passive: false });
 });
 </script>
 

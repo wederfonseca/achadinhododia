@@ -21,7 +21,8 @@ html, body {
   padding: 18px 14px;
   margin: 0 auto;
   text-align: center;
-  min-height: 100dvh;
+  min-height: 100dvh; /* preferido */
+  min-height: 100vh;  /* fallback */
 
   display: flex;
   flex-direction: column;
@@ -36,6 +37,7 @@ html, body {
   font-size: 22px;
   border-radius: 16px;
   margin-bottom: 18px;
+  color: #fff;
 }
 
 /* TEXTO */
@@ -52,6 +54,9 @@ html, body {
   max-width: 100%;
   border-radius: 20px;
   margin-bottom: 14px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* URGÊNCIA */
@@ -78,6 +83,15 @@ html, body {
   animation: pulse 1.6s infinite;
 
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+}
+
+/* foco visível para acessibilidade */
+.btn:focus-visible {
+  outline: 3px solid rgba(255,255,255,0.18);
+  outline-offset: 4px;
 }
 
 .btn:active {
@@ -104,7 +118,7 @@ html, body {
 .checks {
   font-size: 13px;
   line-height: 1.6;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 /* ===== LOADING OVERLAY ===== */
@@ -150,18 +164,16 @@ html, body {
   }
 }
 
+/* REDUZIR MOVIMENTO */
+@media (prefers-reduced-motion: reduce) {
+  .btn { animation: none; }
+  .loading-box { animation: none; }
+  * { transition: none !important; }
+}
+
 /* RESPONSIVO */
 @media (max-width: 360px) {
-  .top-bar {
-    font-size: 20px;
-  }
-
-  .subtitle {
-    font-size: 18px;
-  }
-
-  .btn {
-    font-size: 18px;
-    padding: 18px;
-  }
+  .top-bar { font-size: 20px; }
+  .subtitle { font-size: 18px; }
+  .btn { font-size: 18px; padding: 18px; }
 }
