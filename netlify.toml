@@ -2,5 +2,6 @@
   publish = "."
   edge_functions = "netlify/edge-functions"
 
-[build.environment]
-  TZ = "America/Sao_Paulo"
+[[edge_functions]]
+  function = "collect"
+  path = "/collect"

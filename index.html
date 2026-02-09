@@ -132,7 +132,7 @@ function trackWhatsappClick(e, url) {
   });
 
   // chama a Edge Function que faz o CAPI + contador
-  sendEventThenRedirect('/.netlify/edge-functions/collect', payload, url);
+  sendEventThenRedirect('/collect', payload, url);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
