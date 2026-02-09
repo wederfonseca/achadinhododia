@@ -1,0 +1,6 @@
+[build]
+  publish = "."
+  edge_functions = "netlify/edge-functions"
+
+[build.environment]
+  TZ = "America/Sao_Paulo"

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Achadinho do Dia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" href="favicon-v6.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- META PIXEL (APENAS PAGEVIEW) -->
+  <script>
+  !function(f,b,e,v,n,t,s){
+    if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)
+  }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+  fbq('init', '777056694717675');
+  fbq('track', 'PageView');
+  </script>
+</head>
+
+<body>
+
+<div class="page">
+  <div class="top-bar">As melhores ofertas do dia, direto no seu WhatsApp</div>
+
+  <div class="subtitle">
+    Escolhemos diariamente o que faz sentido para você economizar.
+  </div>
+
+  <div class="image-box">
+    <img src="caixa.png" alt="Ofertas">
+  </div>
+
+  <div class="urgency">⚡ Os melhores preços acabam rápido</div>
+
+  <a id="joinBtn"
+     class="btn"
+     href="https://busqy.me/grupos/achadinhododia">
+     ENTRAR NO GRUPO DE OFERTAS
+  </a>
+
+  <div class="checks">
+    ✅ Só o que vale a pena<br>
+    ✅ Você pode sair quando quiser<br>
+    ✅ Promoções exclusivas todos os dias
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div id="loading" class="loading hidden">
+  <div class="loading-box">
+    🔒 Reservando sua vaga no grupo…
+  </div>
+</div>
+
+<script>
+const MAX_WAIT_MS = 900;
+let locked = false;
+
+function generateEventId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return 'evt_' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
+}
+
+function readCookie(name) {
+  const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return m ? m.pop() : null;
+}
+
+async function sendEventThenRedirect(endpoint, payload, url) {
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(endpoint, new Blob([payload], { type: 'application/json' }));
+      setTimeout(() => location.href = url, MAX_WAIT_MS);
+      return;
+    }
+
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true
+    });
+  } catch {}
+  location.href = url;
+}
+
+function trackWhatsappClick(e, url) {
+  e.preventDefault();
+  if (locked) return;
+  locked = true;
+
+  if (sessionStorage.getItem('group_join_sent')) {
+    location.href = url;
+    return;
+  }
+
+  document.getElementById('loading')?.classList.remove('hidden');
+
+  const eventId = generateEventId();
+  sessionStorage.setItem('group_join_sent', eventId);
+
+  const payload = JSON.stringify({
+    event_name: 'GroupJoinIntent',
+    event_id: eventId,
+    event_source_url: location.href,
+    fbp: readCookie('_fbp'),
+    fbc: readCookie('_fbc'),
+    custom_data: {
+      destination: 'whatsapp_group',
+      brand: 'Achadinho do Dia'
+    }
+  });
+
+  // 🔥 EDGE FUNCTION
+  sendEventThenRedirect('/.netlify/edge-functions/collect', payload, url);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('joinBtn')
+    ?.addEventListener('click', e => trackWhatsappClick(e, e.currentTarget.href));
+});
+</script>
+
+</body>
+</html>
