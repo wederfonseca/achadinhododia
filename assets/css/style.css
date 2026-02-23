@@ -1,0 +1,168 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Montserrat', Arial, sans-serif;
+  background: #1c1c1c;
+  color: #ffffff;
+}
+
+.page {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  text-align: center;
+}
+
+.top-bar {
+  background: #ff2b2b;
+  padding: 16px;
+  font-weight: 800;
+  font-size: 22px;
+  border-radius: 16px;
+  margin-bottom: 18px;
+}
+
+.subtitle {
+  font-size: 18px;
+  line-height: 1.4;
+  margin-bottom: 18px;
+}
+
+.image-box img {
+  width: 200px;
+  max-width: 100%;
+  border-radius: 18px;
+  margin-bottom: 16px;
+}
+
+.urgency {
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  background: #2bd86f;
+  padding: 18px;
+  border-radius: 40px;
+  margin: 14px 0 18px;
+  text-decoration: none;
+  text-align: center;
+  animation: pulse 1.6s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); }
+  70% { transform: scale(1); }
+  100% { transform: scale(0.95); }
+}
+
+.checks {
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 30px;
+}
+
+.section {
+  margin-top: 48px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.bullets {
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  background: #222;
+  color: #ffffff;
+  border: 2px solid #2bd86f;
+  transition: 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #2bd86f;
+  color: #000;
+}
+
+/* ===== PROOF GRID ===== */
+
+.proof-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  justify-items: center;
+}
+
+.proof-grid img {
+  width: 100%;
+  max-width: 170px;
+  border-radius: 14px;
+}
+
+.proof-center {
+  grid-column: 1 / span 2;
+  justify-self: center;
+}
+
+/* ===== FECHAMENTO ===== */
+
+.final-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.final-sub {
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(3px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading.hidden {
+  display: none;
+}
+
+.loading-box {
+  background: #121212;
+  padding: 24px 22px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
