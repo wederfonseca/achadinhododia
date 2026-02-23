@@ -131,7 +131,7 @@ export default async (request, context) => {
     );
 
     console.log(
-      `[CAPI] ${dateBr} ${timeBr} event_id=${body.event_id} status=${metaRes.status} #${counter}`
+      `[CAPI] ${dateBr} ${timeBr} group=${body.custom_data?.group || 'unknown'} event_id=${body.event_id} status=${metaRes.status} #${counter}`
     );
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
