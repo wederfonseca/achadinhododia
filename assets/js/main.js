@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const buttons = document.querySelectorAll('.btn-track');
   const loadingOverlay = document.getElementById('loading');
 
+  if (loadingOverlay) loadingOverlay.classList.add('hidden');
+
   if (!buttons.length) return;
 
   buttons.forEach(btn => {
