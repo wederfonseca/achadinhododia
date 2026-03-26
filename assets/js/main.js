@@ -1,4 +1,4 @@
-const WAIT_MS = 1000;
+const WAIT_MS = 400;
 let locked = false;
 
 /* ================= UTIL ================= */
@@ -39,13 +39,14 @@ async function sendEventThenRedirect(endpoint, payload, url) {
   }, WAIT_MS);
 }
 
-/* ================= TRACKING ================= */
+/* ================= MAIN ================= */
 
 document.addEventListener('DOMContentLoaded', () => {
 
   const buttons = document.querySelectorAll('.btn-track');
   const loadingOverlay = document.getElementById('loading');
 
+  // 🔥 garante que o loading sempre começa escondido
   if (loadingOverlay) loadingOverlay.classList.add('hidden');
 
   if (!buttons.length) return;
@@ -62,13 +63,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const groupType = btn.dataset.group || 'geral';
       const endpoint = btn.dataset.collectEndpoint || '/collect';
 
-      // Evita disparar múltiplos eventos na mesma sessão
       const sessionKey = `group_join_sent_${groupType}`;
+
+      // se já clicou nessa sessão → só redireciona
       if (sessionStorage.getItem(sessionKey)) {
-        window.location.href = targetUrl;
+        if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+
+        setTimeout(() => {
+          window.location.href = targetUrl;
+        }, WAIT_MS);
+
         return;
       }
 
+      // mostra loading
       if (loadingOverlay) {
         loadingOverlay.classList.remove('hidden');
       }
@@ -95,4 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   });
 
+});
+
+/* ================= FIX VOLTAR (bfcache) ================= */
+
+// 🔥 quando voltar pelo botão do navegador
+window.addEventListener('pageshow', function(event) {
+  const loadingOverlay = document.getElementById('loading');
+
+  if (event.persisted) {
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+
+    // libera clique novamente
+    locked = false;
+  }
 });
