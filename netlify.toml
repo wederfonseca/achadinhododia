@@ -5,3 +5,9 @@
 [[edge_functions]]
   function = "collect"
   path = "/collect"
+
+# TESTE TEMPORARIO (2026-09-05) -- APAGAR junto com netlify/edge-functions/tgmesmo.js
+# e teste-link.html. Metade "mesmo dominio" do experimento do Universal Link.
+[[edge_functions]]
+  function = "tgmesmo"
+  path = "/tg-mesmo-dominio"
